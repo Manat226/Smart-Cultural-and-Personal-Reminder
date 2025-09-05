@@ -1,41 +1,43 @@
-import React, { useState } from 'react';
-import { Play, Pause, Volume2, Calendar, CheckSquare, Sparkles } from 'lucide-react';
-import { format } from 'date-fns';
+import React, { useState } from "react";
+import { Play, Pause, Volume2, Calendar, CheckSquare, Sparkles } from "lucide-react";
+import { format } from "date-fns";
 
 const AvatarGuide: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState<string>('welcome');
+  const [selectedTopic, setSelectedTopic] = useState<string>("welcome");
 
   const avatarTopics = {
     welcome: {
-      title: 'Welcome Message',
-      content: 'Welcome to your Smart Cultural & Personal Reminder! I\'m here to help you stay organized with your tasks and learn about cultural events around the world.',
-      icon: <Sparkles className="text-yellow-500" />
+      title: "Welcome Message",
+      content:
+        "Welcome to your Smart Cultural & Personal Reminder! I'm here to help you stay organized with your tasks and learn about cultural events around the world.",
+      icon: <Sparkles className="text-yellow-500" />,
     },
     todayTasks: {
-      title: 'Today\'s Tasks',
-      content: 'Let me tell you about your tasks for today. You have 3 pending tasks: Morning prayer at 6 AM, Team meeting at 10 AM, and Shopping for festival preparations at 3 PM.',
-      icon: <CheckSquare className="text-green-500" />
+      title: "Today's Tasks",
+      content:
+        "You have 3 pending tasks today: Morning prayer at 6 AM, Team meeting at 10 AM, and Shopping for festival preparations at 3 PM.",
+      icon: <CheckSquare className="text-green-500" />,
     },
     upcomingEvents: {
-      title: 'Upcoming Cultural Events',
-      content: `Today is ${format(new Date(), 'MMMM dd, yyyy')}. The next major cultural event is Eid al-Fitr on March 30th, which marks the end of Ramadan. It's a time for celebration, family gatherings, and charitable giving.`,
-      icon: <Calendar className="text-indigo-500" />
-    }
+      title: "Upcoming Cultural Events",
+      content: `Today is ${format(
+        new Date(),
+        "MMMM dd, yyyy"
+      )}. The next major cultural event is Eid al-Fitr on March 30th, a time for celebration, family gatherings, and charitable giving.`,
+      icon: <Calendar className="text-indigo-500" />,
+    },
   };
 
+  // Browser-only TTS
   const handlePlayAudio = (topic: string) => {
     const content = avatarTopics[topic as keyof typeof avatarTopics].content;
 
-    // Browser TTS
     const utterance = new SpeechSynthesisUtterance(content);
     speechSynthesis.speak(utterance);
 
-    // Simulate playing state for animation
     setIsPlaying(true);
-    setTimeout(() => {
-      setIsPlaying(false);
-    }, 3000); // 3 seconds
+    setTimeout(() => setIsPlaying(false), 3000);
   };
 
   return (
@@ -52,7 +54,7 @@ const AvatarGuide: React.FC = () => {
             <div className="w-24 h-24 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
               <span className="text-white text-3xl">🤖</span>
             </div>
-            
+
             {/* Animated speaking indicator */}
             {isPlaying && (
               <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
@@ -60,7 +62,7 @@ const AvatarGuide: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           <h2 className="text-xl font-bold text-white mb-2">Cultural Assistant</h2>
           <p className="text-indigo-100">Ready to help you with tasks and events</p>
         </div>
@@ -74,8 +76,8 @@ const AvatarGuide: React.FC = () => {
             onClick={() => setSelectedTopic(key)}
             className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
               selectedTopic === key
-                ? 'border-indigo-500 bg-indigo-50'
-                : 'border-gray-200 hover:border-gray-300 bg-white'
+                ? "border-indigo-500 bg-indigo-50"
+                : "border-gray-200 hover:border-gray-300 bg-white"
             }`}
           >
             <div className="flex items-center space-x-3 mb-2">
@@ -96,24 +98,24 @@ const AvatarGuide: React.FC = () => {
               {avatarTopics[selectedTopic as keyof typeof avatarTopics].title}
             </h3>
           </div>
-          
+
           <button
             onClick={() => handlePlayAudio(selectedTopic)}
             disabled={isPlaying}
             className={`p-3 rounded-full transition-all duration-200 ${
               isPlaying
-                ? 'bg-red-500 text-white hover:bg-red-600'
-                : 'bg-indigo-500 text-white hover:bg-indigo-600 hover:scale-105'
+                ? "bg-red-500 text-white hover:bg-red-600"
+                : "bg-indigo-500 text-white hover:bg-indigo-600 hover:scale-105"
             }`}
           >
             {isPlaying ? <Pause size={20} /> : <Play size={20} />}
           </button>
         </div>
-        
+
         <p className="text-gray-700 leading-relaxed">
           {avatarTopics[selectedTopic as keyof typeof avatarTopics].content}
         </p>
-        
+
         {/* Audio Visualization */}
         {isPlaying && (
           <div className="flex items-center justify-center space-x-1 mt-4">
@@ -123,7 +125,7 @@ const AvatarGuide: React.FC = () => {
                 className="w-1 bg-indigo-500 rounded-full animate-pulse"
                 style={{
                   height: `${20 + Math.random() * 20}px`,
-                  animationDelay: `${i * 0.1}s`
+                  animationDelay: `${i * 0.1}s`,
                 }}
               />
             ))}

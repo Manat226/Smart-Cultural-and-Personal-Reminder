@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Play, Pause, Volume2, Calendar, CheckSquare, Sparkles } from 'lucide-react';
-import { azureApi } from '../../utils/azureApi';
 import { format } from 'date-fns';
 
 const AvatarGuide: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentAudio, setCurrentAudio] = useState<string>('');
   const [selectedTopic, setSelectedTopic] = useState<string>('welcome');
 
   const avatarTopics = {
@@ -26,29 +24,18 @@ const AvatarGuide: React.FC = () => {
     }
   };
 
-  const handlePlayAudio = async (topic: string) => {
-    if (isPlaying) {
-      setIsPlaying(false);
-      // Stop current audio
-      return;
-    }
-
-    setIsPlaying(true);
+  const handlePlayAudio = (topic: string) => {
     const content = avatarTopics[topic as keyof typeof avatarTopics].content;
-    
-    try {
-      const audioUrl = await azureApi.textToSpeech(content);
-      setCurrentAudio(audioUrl);
-      
-      // Simulate audio playback
-      setTimeout(() => {
-        setIsPlaying(false);
-      }, 5000);
-      
-    } catch (error) {
-      console.error('Error playing audio:', error);
+
+    // Browser TTS
+    const utterance = new SpeechSynthesisUtterance(content);
+    speechSynthesis.speak(utterance);
+
+    // Simulate playing state for animation
+    setIsPlaying(true);
+    setTimeout(() => {
       setIsPlaying(false);
-    }
+    }, 3000); // 3 seconds
   };
 
   return (

@@ -1,46 +1,30 @@
-import { SpeechConfig, AudioConfig, SpeechSynthesizer, SpeechRecognizer } from "microsoft-cognitiveservices-speech-sdk";
+import OpenAI from "openai";
 
-// Load Azure key and region from environment variables
-const AZURE_KEY = process.env.AZURE_KEY;
-const AZURE_REGION = process.env.AZURE_REGION;
+// Load OpenAI key from environment variables
+const OPENAI_KEY = process.env.OPENAI_API_KEY;
 
-// Function for Text-to-Speech
-export async function textToSpeech(text: string) {
-    const speechConfig = SpeechConfig.fromSubscription(AZURE_KEY, AZURE_REGION);
-    const audioConfig = AudioConfig.fromDefaultSpeakerOutput();
-    const synthesizer = new SpeechSynthesizer(speechConfig, audioConfig);
-    
-    return new Promise<void>((resolve, reject) => {
-        synthesizer.speakTextAsync(
-            text,
-            result => {
-                synthesizer.close();
-                resolve();
-            },
-            error => {
-                synthesizer.close();
-                reject(error);
-            }
-        );
-    });
+// Function to get AI response from Gemini
+export default async function handler(req, res) {
+    try {
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ error: "No message provided" });
+        }
+
+        const client = new OpenAI({ apiKey: OPENAI_KEY });
+
+        const response = await client.chat.completions.create({
+            model: "gemini-1.2",
+            messages: [{ role: "user", content: message }],
+        });
+
+        const answer = response.choices[0].message.content;
+        res.status(200).json({ reply: answer });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to get AI response" });
+    }
 }
 
-// Function for Speech-to-Text
-export async function speechToText() {
-    const speechConfig = SpeechConfig.fromSubscription(AZURE_KEY, AZURE_REGION);
-    const audioConfig = AudioConfig.fromDefaultMicrophoneInput();
-    const recognizer = new SpeechRecognizer(speechConfig, audioConfig);
-
-    return new Promise<string>((resolve, reject) => {
-        recognizer.recognizeOnceAsync(
-            result => {
-                recognizer.close();
-                resolve(result.text);
-            },
-            error => {
-                recognizer.close();
-                reject(error);
-            }
-        );
-    });
-}

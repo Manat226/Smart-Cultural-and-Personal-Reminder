@@ -1,127 +1,38 @@
-// pages/api/talk.ts
+import { NextResponse } from "next/server";
 
-import { NextApiRequest, NextApiResponse } from "next";
-
-// Knowledge base with description + date
-const culturalEvents: Record<
-  string,
-  { description: string; date: string }
-> = {
-  eid: {
-    description:
-      "Eid al-Fitr is celebrated at the end of Ramadan. People gather for prayers, share meals, and give charity.",
-    date: "تاریخ ہر سال بدلتی ہے (اسلامی قمری کیلنڈر کے مطابق).",
-  },
-  diwali: {
-    description:
-      "Diwali, the Festival of Lights, is celebrated with lamps, sweets, and fireworks.",
-    date: "تاریخ ہر سال بدلتی ہے (اکتوبر–نومبر، ہندو قمری کیلنڈر).",
-  },
-  christmas: {
-    description:
-      "Christmas marks the birth of Jesus Christ. Families exchange gifts, decorate trees, and attend church.",
-    date: "25 دسمبر ہر سال۔",
-  },
-  holi: {
-    description:
-      "Holi, the Festival of Colors, is celebrated with colored powders, music, and dancing.",
-    date: "تاریخ ہر سال بدلتی ہے (مارچ، ہندو قمری کیلنڈر).",
-  },
-  "independence day": {
-    description:
-      "Pakistan’s Independence Day is celebrated with flag hoisting, parades, and patriotic songs.",
-    date: "14 اگست ہر سال۔",
-  },
-  "pakistan day": {
-    description:
-      "Pakistan Day marks the Lahore Resolution of 1940 with military parades and cultural programs.",
-    date: "23 مارچ ہر سال۔",
-  },
-  "defence day": {
-    description:
-      "Defence Day honors Pakistan’s armed forces with parades and tributes.",
-    date: "6 ستمبر ہر سال۔",
-  },
-  "quaid-e-azam day": {
-    description:
-      "Quaid-e-Azam Day celebrates the birthday of Muhammad Ali Jinnah, Pakistan’s founder.",
-    date: "25 دسمبر ہر سال۔",
-  },
+// Cultural events knowledge base
+const events: Record<string, string> = {
+  eid: "Eid is an Islamic festival celebrated twice a year. Eid-ul-Fitr comes after Ramadan and is celebrated with prayers, food, and family gatherings. Eid-ul-Adha is about sacrifice, prayers, and sharing with the needy.",
+  ramadan: "Ramadan is the holy month of fasting for Muslims. People fast from dawn to sunset, pray, give charity, and focus on self-discipline.",
+  diwali: "Diwali is the Hindu festival of lights, symbolizing the victory of light over darkness. People decorate their homes with lamps, exchange sweets, and celebrate with fireworks.",
+  holi: "Holi is a Hindu spring festival of colors. People throw colored powders, sing, dance, and celebrate the arrival of spring.",
+  christmas: "Christmas is a Christian holiday celebrating the birth of Jesus, with traditions like gifts, decorations, and prayers on December 25th.",
+  newyear: "New Year is celebrated worldwide on January 1st with fireworks, parties, and resolutions to welcome the coming year.",
+  independence: "Independence Day in Pakistan is on 14th August. It is celebrated with flag hoisting, parades, cultural programs, and patriotic songs.",
+  pakistan: "Pakistan Day is celebrated on 23rd March to commemorate the Lahore Resolution and the adoption of Pakistan’s first constitution.",
+  quaid: "Quaid-e-Azam Day is celebrated on 25th December to honor the birthday of Muhammad Ali Jinnah, the founder of Pakistan.",
+  basant: "Basant is a spring festival celebrated with kite flying, music, and traditional food, especially in Lahore."
 };
 
-// Helper: detect event keyword in both English & Urdu
-function findEvent(message: string): string | null {
-  const normalized = message.toLowerCase();
+export async function POST(req: Request) {
+  const { message } = await req.json();
+  const lowerMsg = message.toLowerCase();
 
-  // Urdu mappings
-  if (normalized.includes("عید")) return "eid";
-  if (normalized.includes("دیوالي")) return "diwali";
-  if (normalized.includes("کرسمس")) return "christmas";
-  if (normalized.includes("ہولی")) return "holi";
-  if (normalized.includes("یوم آزادی")) return "independence day";
-  if (normalized.includes("یوم پاکستان")) return "pakistan day";
-  if (normalized.includes("یوم دفاع")) return "defence day";
-  if (normalized.includes("قائداعظم")) return "quaid-e-azam day";
+  let reply = "Sorry, I don't know the answer to that.";
 
-  // English checks
-  for (const event in culturalEvents) {
-    if (normalized.includes(event)) {
-      return event;
+  // keyword matching
+  for (const key in events) {
+    if (lowerMsg.includes(key)) {
+      reply = events[key];
+      break;
     }
   }
-  return null;
-}
 
-// Helper: check if asking to list events (English + Urdu)
-function isAskingForEvents(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes("list") ||
-    normalized.includes("which events") ||
-    normalized.includes("what events") ||
-    normalized.includes("festivals") ||
-    normalized.includes("تقریب") ||
-    normalized.includes("کون سے") ||
-    normalized.includes("کونسے") ||
-    normalized.includes("کون کون سے")
-  );
-}
-
-// API handler
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const { message } = req.body;
-  if (!message) {
-    return res.status(400).json({ error: "No message provided" });
-  }
-
-  let reply =
-    "معاف کریں، میرے پاس اس تقریب کی معلومات نہیں ہیں۔ آپ عید، دیوالی، کرسمس، یوم آزادی وغیرہ کے بارے میں پوچھ سکتے ہیں۔";
-
-  if (isAskingForEvents(message)) {
+  // list of all events
+  if (lowerMsg.includes("which events")) {
     reply =
-      "یہ تقریبات ہیں جن کے بارے میں میں بتا سکتا ہوں:\n- " +
-      Object.keys(culturalEvents)
-        .map((e) => e.charAt(0).toUpperCase() + e.slice(1))
-        .join("\n- ");
-  } else {
-    const event = findEvent(message);
-    if (event) {
-      const { description, date } = culturalEvents[event];
-      if (
-        message.toLowerCase().includes("when") ||
-        message.includes("کب") ||
-        message.includes("تاریخ")
-      ) {
-        reply = `${event.charAt(0).toUpperCase() + event.slice(1)} is celebrated on ${date}`;
-      } else {
-        reply = description;
-      }
-    }
+      "I can tell you about Eid, Ramadan, Diwali, Holi, Christmas, New Year, Independence Day, Pakistan Day, Quaid-e-Azam Day, and Basant. Which one do you want to know about?";
   }
 
-  return res.status(200).json({ reply });
+  return NextResponse.json({ reply });
 }

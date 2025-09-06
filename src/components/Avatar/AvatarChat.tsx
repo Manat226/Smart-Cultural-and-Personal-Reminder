@@ -4,29 +4,30 @@ export default function AvatarChat() {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [textInput, setTextInput] = useState("");
 
-  const handleTextSubmit = async () => {
+  const handleTextSubmit = () => {
     if (!textInput.trim()) return;
 
     // Add user message
     setMessages((prev) => [...prev, { role: "user", content: textInput }]);
 
-    try {
-      // Call Gemini backend
-      const res = await fetch("/api/talk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: textInput }),
-      });
+    // Simple in-browser response logic
+    let reply = "Sorry, I don't know the answer to that.";
 
-      const data = await res.json();
-      setMessages((prev) => [...prev, { role: "vector", content: data.reply }]);
-    } catch (err) {
-      console.error(err);
-      setMessages((prev) => [
-        ...prev,
-        { role: "vector", content: "Sorry, I'm currently unavailable." },
-      ]);
+    const lower = textInput.toLowerCase();
+    if (lower.includes("hello") || lower.includes("hi")) {
+      reply = "Hello! I'm your cultural assistant. How can I help you today?";
+    } else if (lower.includes("tasks")) {
+      reply = "You have 3 pending tasks today: Morning prayer at 6 AM, Team meeting at 10 AM, Shopping for festival preparations at 3 PM.";
+    } else if (lower.includes("events") || lower.includes("holiday")) {
+      reply = "The next major cultural event is Eid al-Fitr on March 30th. It's a time for celebration, family gatherings, and charitable giving.";
     }
+
+    // Add bot reply
+    setMessages((prev) => [...prev, { role: "vector", content: reply }]);
+
+    // Browser TTS
+    const utterance = new SpeechSynthesisUtterance(reply);
+    speechSynthesis.speak(utterance);
 
     setTextInput("");
   };

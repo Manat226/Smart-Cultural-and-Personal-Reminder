@@ -5,14 +5,14 @@ const events: Record<
   string,
   { descriptionEn: string; descriptionUr: string; date: string }
 > = {
-  "eid al-fitr": {
+  "eid-ul-fitar": {
     date: "Varies (end of Ramadan)",
     descriptionEn:
       "Eid al-Fitr marks the end of Ramadan, a month of fasting for Muslims. Families gather for prayers, feasts, and charity. It is a time of joy, gratitude, and community celebration.",
     descriptionUr:
       "عیدالفطر رمضان کے اختتام پر منائی جاتی ہے۔ مسلمان نماز، روزہ ختم کرنے کی خوشی، دعوتوں اور خیرات کے ساتھ مناتے ہیں۔ یہ خوشی، شکرگزاری اور اجتماعی جشن کا وقت ہے۔",
   },
-  "eid al-adha": {
+  "eid-ul-adha": {
     date: "Varies (10th Dhul-Hijjah)",
     descriptionEn:
       "Eid al-Adha commemorates Prophet Ibrahim’s willingness to sacrifice his son for God. Muslims perform animal sacrifice, share meat with the needy, and gather for prayers.",

@@ -3,32 +3,44 @@ import React, { useState } from "react";
 export default function AvatarChat() {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [textInput, setTextInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleTextSubmit = () => {
+  const handleTextSubmit = async () => {
     if (!textInput.trim()) return;
 
     // Add user message
     setMessages((prev) => [...prev, { role: "user", content: textInput }]);
 
-    // Simple in-browser response logic
-    let reply = "Sorry, I don't know the answer to that.";
+    setLoading(true);
 
-    const lower = textInput.toLowerCase();
-    if (lower.includes("hello") || lower.includes("hi")) {
-      reply = "Hello! I'm your cultural assistant. How can I help you today?";
-    } else if (lower.includes("tasks")) {
-      reply = "You have 3 pending tasks today: Morning prayer at 6 AM, Team meeting at 10 AM, Shopping for festival preparations at 3 PM.";
-    } else if (lower.includes("events") || lower.includes("holiday")) {
-      reply = "The next major cultural event is Eid al-Fitr on March 30th. It's a time for celebration, family gatherings, and charitable giving.";
+    try {
+      // Send request to talk.ts backend
+      const res = await fetch("/api/talk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: textInput }),
+      });
+
+      const data = await res.json();
+      const reply = data.reply || "Sorry, I don’t know the answer to that.";
+
+      // Add bot reply
+      setMessages((prev) => [...prev, { role: "vector", content: reply }]);
+
+      // Speak reply
+      const utterance = new SpeechSynthesisUtterance(reply);
+      utterance.lang = "ur-PK"; // supports Urdu + English
+      speechSynthesis.speak(utterance);
+
+    } catch (err) {
+      console.error("Error fetching response:", err);
+      setMessages((prev) => [
+        ...prev,
+        { role: "vector", content: "⚠️ Server error. Please try again." },
+      ]);
     }
 
-    // Add bot reply
-    setMessages((prev) => [...prev, { role: "vector", content: reply }]);
-
-    // Browser TTS
-    const utterance = new SpeechSynthesisUtterance(reply);
-    speechSynthesis.speak(utterance);
-
+    setLoading(false);
     setTextInput("");
   };
 
@@ -47,6 +59,7 @@ export default function AvatarChat() {
             {m.content}
           </div>
         ))}
+        {loading && <div className="text-gray-500 p-2">⏳ Thinking...</div>}
       </div>
 
       <div className="flex w-full mb-3">
@@ -54,8 +67,9 @@ export default function AvatarChat() {
           type="text"
           value={textInput}
           onChange={(e) => setTextInput(e.target.value)}
-          placeholder="Type your question..."
+          placeholder="Type your question in English or Urdu..."
           className="flex-grow border rounded-l-xl px-4 py-2 focus:outline-none"
+          onKeyDown={(e) => e.key === "Enter" && handleTextSubmit()}
         />
         <button
           onClick={handleTextSubmit}
